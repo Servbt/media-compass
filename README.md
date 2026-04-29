@@ -129,6 +129,61 @@ npm run dev:server
 VITE_API_BASE_URL=http://localhost:3001 npm run dev
 ```
 
+### Telegram webhook setup
+
+The Telegram capture endpoint is `POST /api/webhooks/telegram`. It stores the raw update as an ingest event, extracts text/URLs into source artifacts, and creates a Review Inbox item visible from `GET /api/items` and the web Review Inbox.
+
+1. Create a bot with [BotFather](https://t.me/BotFather) and copy the bot token.
+2. Set local server env in `.env`:
+
+```bash
+TELEGRAM_BOT_TOKEN=BOT_TOKEN_FROM_BOTFATHER
+TELEGRAM_WEBHOOK_SECRET=RANDOM_WEBHOOK_SECRET
+# Optional but recommended: only accept captures from your Telegram user id.
+TELEGRAM_ALLOWED_USER_ID=123456789
+APP_BASE_URL=https://your-public-tunnel.example
+```
+
+3. Run the API server:
+
+```bash
+npm run dev:server
+curl http://localhost:3001/healthz
+```
+
+4. Expose the local API server with a public HTTPS tunnel. For example:
+
+```bash
+cloudflared tunnel --url http://localhost:3001
+# or
+ngrok http 3001
+```
+
+5. Copy the public HTTPS URL into `APP_BASE_URL` in `.env`, then wire Telegram to `${APP_BASE_URL}/api/webhooks/telegram`:
+
+```bash
+npm run telegram:me
+npm run telegram:webhook:set
+npm run telegram:webhook:info
+```
+
+`npm run telegram:webhook:set` sends Telegram `setWebhook` with URL `${APP_BASE_URL}/api/webhooks/telegram`. When `TELEGRAM_WEBHOOK_SECRET` is set, it is sent as Telegram's `secret_token`; the Fastify webhook validates the matching `X-Telegram-Bot-Api-Secret-Token` header.
+
+6. Send the bot a title, note, or URL from the allowed Telegram user. Verify capture:
+
+```bash
+curl http://localhost:3001/api/items
+```
+
+You should see a new item with `status: "inbox"` and `needsReview: true`; it should also appear in the app Review Inbox when the frontend uses `VITE_API_BASE_URL=http://localhost:3001`.
+
+Useful diagnostics:
+
+```bash
+npm run telegram:webhook:info    # shows Telegram webhook URL, pending updates, and last error fields
+npm run telegram:webhook:delete  # removes the webhook while debugging
+```
+
 Postgres/Supabase schema migration:
 
 ```bash

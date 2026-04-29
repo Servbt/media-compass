@@ -10,6 +10,10 @@
     "build:server": "tsc -p server/tsconfig.json",
     "start:server": "tsx server/src/index.ts",
     "migrate:server": "tsx server/src/db/migrate.ts",
+    "telegram:webhook:info": "tsx server/src/scripts/telegramWebhook.ts info",
+    "telegram:webhook:set": "tsx server/src/scripts/telegramWebhook.ts set",
+    "telegram:webhook:delete": "tsx server/src/scripts/telegramWebhook.ts delete",
+    "telegram:me": "tsx server/src/scripts/telegramWebhook.ts me",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview"
