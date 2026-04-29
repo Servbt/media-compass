@@ -9,6 +9,10 @@ const envSchema = z.object({
   HOST: z.string().default('127.0.0.1'),
   FRONTEND_ORIGIN: z.string().optional(),
   API_TOKEN: z.string().optional(),
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
+  TELEGRAM_ALLOWED_USER_ID: z.string().optional(),
+  APP_BASE_URL: z.string().optional(),
   DATABASE_URL: z.string().optional(),
 })
 

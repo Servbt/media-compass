@@ -83,4 +83,29 @@ describe('JsonMediaCompassStore', () => {
     ])
     expect(snapshot.users).toHaveLength(1)
   })
+
+  it('persists ingest events and source artifacts separately across store instances', async () => {
+    const { path, store } = await makeStore()
+    const event = await store.createIngestEvent({
+      channel: 'telegram',
+      channelMessageId: 'abc123',
+      rawText: 'Captured text',
+      rawPayload: { update_id: 123 },
+      state: 'completed',
+    })
+    const artifact = await store.createSourceArtifact({
+      type: 'text',
+      contentText: 'Captured text',
+      userId: event.userId,
+      ingestEventId: event.id,
+    })
+
+    const reloaded = new JsonMediaCompassStore(path)
+    await expect(reloaded.listIngestEvents()).resolves.toEqual([event])
+    await expect(reloaded.listSourceArtifacts()).resolves.toEqual([artifact])
+
+    const snapshot = JSON.parse(await readFile(path, 'utf8'))
+    expect(snapshot.ingestEvents).toEqual([event])
+    expect(snapshot.sourceArtifacts).toEqual([artifact])
+  })
 })

@@ -64,15 +64,45 @@ export type PickerEvent = {
   createdAt: string
 }
 
+export type SourceArtifactRecord = SourceArtifact & {
+  userId: string
+  mediaItemId?: string
+  ingestEventId?: string
+}
+
 export type DataSnapshot = {
   schemaVersion: 1
   users: User[]
   mediaItems: MediaItem[]
-  sourceArtifacts: Array<SourceArtifact & { userId: string; mediaItemId?: string; ingestEventId?: string }>
+  sourceArtifacts: SourceArtifactRecord[]
   ingestEvents: IngestEvent[]
   enrichmentJobs: EnrichmentJob[]
   clarificationRequests: ClarificationRequest[]
   pickerEvents: PickerEvent[]
+}
+
+export type CreateIngestEventInput = {
+  userId?: string
+  channel: IngestEvent['channel']
+  channelMessageId?: string
+  rawText?: string
+  rawPayload: Record<string, unknown>
+  state?: string
+  errorMessage?: string
+  processedAt?: string
+}
+
+export type CreateSourceArtifactInput = {
+  id?: string
+  userId?: string
+  mediaItemId?: string
+  ingestEventId?: string
+  type: SourceArtifact['type']
+  url?: string
+  contentText?: string
+  storagePath?: string
+  metadata?: Record<string, unknown>
+  createdAt?: string
 }
 
 export type CreateMediaItemInput = {
@@ -105,4 +135,8 @@ export type MediaCompassStore = {
   createMediaItem(input: CreateMediaItemInput): Promise<MediaItem>
   updateMediaItem(id: string, input: UpdateMediaItemInput): Promise<MediaItem | null>
   archiveMediaItem(id: string): Promise<MediaItem | null>
+  listIngestEvents(): Promise<IngestEvent[]>
+  createIngestEvent(input: CreateIngestEventInput): Promise<IngestEvent>
+  listSourceArtifacts(): Promise<SourceArtifactRecord[]>
+  createSourceArtifact(input: CreateSourceArtifactInput): Promise<SourceArtifactRecord>
 }

@@ -1,5 +1,13 @@
 import type { MediaItem } from '../../../src/lib/types'
-import type { CreateMediaItemInput, MediaCompassStore, UpdateMediaItemInput } from './types'
+import type {
+  CreateIngestEventInput,
+  CreateMediaItemInput,
+  CreateSourceArtifactInput,
+  IngestEvent,
+  MediaCompassStore,
+  SourceArtifactRecord,
+  UpdateMediaItemInput,
+} from './types'
 
 function nowIso() {
   return new Date().toISOString()
@@ -46,11 +54,47 @@ function nextTimestamp(previous?: string) {
   return now.toISOString()
 }
 
+const defaultUserId = '00000000-0000-4000-8000-000000000001'
+
+function makeIngestEvent(input: CreateIngestEventInput): IngestEvent {
+  return {
+    id: crypto.randomUUID(),
+    userId: input.userId ?? defaultUserId,
+    channel: input.channel,
+    channelMessageId: input.channelMessageId,
+    rawText: input.rawText,
+    rawPayload: input.rawPayload,
+    state: input.state ?? 'received',
+    errorMessage: input.errorMessage,
+    createdAt: nowIso(),
+    processedAt: input.processedAt,
+  }
+}
+
+function makeSourceArtifact(input: CreateSourceArtifactInput): SourceArtifactRecord {
+  return {
+    id: input.id ?? crypto.randomUUID(),
+    userId: input.userId ?? defaultUserId,
+    mediaItemId: input.mediaItemId,
+    ingestEventId: input.ingestEventId,
+    type: input.type,
+    url: input.url,
+    contentText: input.contentText,
+    storagePath: input.storagePath,
+    metadata: input.metadata,
+    createdAt: input.createdAt ?? nowIso(),
+  }
+}
+
 export class MemoryMediaCompassStore implements MediaCompassStore {
   protected items: MediaItem[]
+  protected ingestEvents: IngestEvent[]
+  protected sourceArtifacts: SourceArtifactRecord[]
 
   constructor(items: MediaItem[] = []) {
     this.items = items
+    this.ingestEvents = []
+    this.sourceArtifacts = []
   }
 
   async listMediaItems() {
@@ -77,6 +121,26 @@ export class MemoryMediaCompassStore implements MediaCompassStore {
   async archiveMediaItem(id: string) {
     return this.updateMediaItem(id, { status: 'archived' })
   }
+
+  async listIngestEvents() {
+    return [...this.ingestEvents]
+  }
+
+  async createIngestEvent(input: CreateIngestEventInput) {
+    const event = makeIngestEvent(input)
+    this.ingestEvents = [event, ...this.ingestEvents]
+    return event
+  }
+
+  async listSourceArtifacts() {
+    return [...this.sourceArtifacts]
+  }
+
+  async createSourceArtifact(input: CreateSourceArtifactInput) {
+    const artifact = makeSourceArtifact(input)
+    this.sourceArtifacts = [artifact, ...this.sourceArtifacts]
+    return artifact
+  }
 }
 
-export { makeItem }
+export { makeIngestEvent, makeItem, makeSourceArtifact }

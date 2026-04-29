@@ -1,8 +1,15 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import type { MediaItem } from '../../../src/lib/types'
-import { makeItem } from './memoryStore'
-import type { CreateMediaItemInput, DataSnapshot, MediaCompassStore, UpdateMediaItemInput } from './types'
+import { makeIngestEvent, makeItem, makeSourceArtifact } from './memoryStore'
+import type {
+  CreateIngestEventInput,
+  CreateMediaItemInput,
+  CreateSourceArtifactInput,
+  DataSnapshot,
+  MediaCompassStore,
+  UpdateMediaItemInput,
+} from './types'
 
 const defaultUserId = '00000000-0000-4000-8000-000000000001'
 
@@ -113,5 +120,41 @@ export class JsonMediaCompassStore implements MediaCompassStore {
 
   async archiveMediaItem(id: string) {
     return this.updateMediaItem(id, { status: 'archived' })
+  }
+
+  async listIngestEvents() {
+    return this.enqueue(async () => {
+      const snapshot = await readSnapshot(this.path)
+      await writeSnapshot(this.path, snapshot)
+      return [...snapshot.ingestEvents]
+    })
+  }
+
+  async createIngestEvent(input: CreateIngestEventInput) {
+    return this.enqueue(async () => {
+      const event = makeIngestEvent(input)
+      await this.updateSnapshot((snapshot) => {
+        snapshot.ingestEvents = [event, ...snapshot.ingestEvents]
+      })
+      return event
+    })
+  }
+
+  async listSourceArtifacts() {
+    return this.enqueue(async () => {
+      const snapshot = await readSnapshot(this.path)
+      await writeSnapshot(this.path, snapshot)
+      return [...snapshot.sourceArtifacts]
+    })
+  }
+
+  async createSourceArtifact(input: CreateSourceArtifactInput) {
+    return this.enqueue(async () => {
+      const artifact = makeSourceArtifact(input)
+      await this.updateSnapshot((snapshot) => {
+        snapshot.sourceArtifacts = [artifact, ...snapshot.sourceArtifacts]
+      })
+      return artifact
+    })
   }
 }
