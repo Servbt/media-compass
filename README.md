@@ -31,6 +31,11 @@ This repo currently contains a Vite + React prototype with local in-memory state
 
 ## Product direction
 
+The important next step is the capture-agent loop. See:
+
+- [`docs/architecture.md`](docs/architecture.md) — system architecture for bot/share ingestion, enrichment, review, and compass picking.
+- [`docs/capture-agent-plan.md`](docs/capture-agent-plan.md) — implementation plan for turning shared links/images/social posts/vague references into annotated queue items.
+
 ### Capture flow
 
 1. User sends a title, link, screenshot, trailer, TikTok, tweet, Steam page, Goodreads page, etc. to an agent.
