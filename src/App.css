@@ -55,7 +55,10 @@ h2 {
 
 .actions,
 .status-row,
-.chips {
+.chips,
+.section-heading,
+.file-actions,
+.review-actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
@@ -68,6 +71,8 @@ h2 {
 
 .actions span,
 .queue p,
+.review-inbox p,
+.muted,
 .empty {
   color: #99a0b8;
 }
@@ -166,15 +171,21 @@ label {
   grid-template-columns: minmax(280px, 390px) 1fr;
 }
 
-.panel {
-  padding: 22px;
+.review-inbox {
+  margin-bottom: 18px;
 }
 
-.add-form {
-  display: grid;
-  gap: 12px;
+.section-heading {
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
 
+.section-heading h2,
+.section-heading .eyebrow {
+  margin-bottom: 0;
+}
+
+.review-inbox article,
 .queue article {
   align-items: flex-start;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -184,9 +195,45 @@ label {
   padding: 16px 0;
 }
 
+.review-inbox article:first-of-type,
 .queue article:first-of-type {
   border-top: 0;
 }
+
+.review-actions button,
+.file-actions button {
+  background: rgba(255, 255, 255, 0.09);
+  color: #f5f6ff;
+  padding: 9px 12px;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.error {
+  color: #ffb4b4;
+}
+
+.panel {
+  padding: 22px;
+}
+
+.add-form {
+  display: grid;
+  gap: 12px;
+}
+
 
 .queue strong {
   color: #ffffff;
@@ -210,7 +257,8 @@ label {
     grid-template-columns: 1fr;
   }
 
-  .queue article {
+  .queue article,
+  .review-inbox article {
     display: block;
   }
 }
