@@ -27,7 +27,13 @@ This should not become another giant tracking database. Letterboxd, Trakt, Story
 - Randomly pick one unfinished item.
 - Move items through `Curious`, `Shortlist`, `In progress`, and `Done`.
 
-This repo currently contains a Vite + React prototype with local in-memory state. Persistent storage and bot ingestion come next.
+This repo currently contains:
+
+- a Vite + React prototype with localStorage fallback,
+- a Review Inbox for ambiguous captures,
+- a minimal Node/Fastify API server,
+- a file-backed local data store for development,
+- a Postgres/Supabase migration for the real capture pipeline tables.
 
 ## Product direction
 
@@ -98,14 +104,42 @@ type MediaItem = {
 
 ## Local development
 
+Web app only, using localStorage fallback:
+
 ```bash
 npm install
 npm run dev
 ```
 
+API server only, using `.data/media-compass.json`:
+
+```bash
+cp .env.example .env
+npm run dev:server
+curl http://localhost:3001/healthz
+```
+
+Web app backed by the API:
+
+```bash
+# terminal 1
+npm run dev:server
+
+# terminal 2
+VITE_API_BASE_URL=http://localhost:3001 npm run dev
+```
+
+Postgres/Supabase schema migration:
+
+```bash
+DATABASE_URL=postgres://... npm run migrate:server
+```
+
 ## Checks
 
 ```bash
+npm test
 npm run lint
 npm run build
+npm run build:server
 ```

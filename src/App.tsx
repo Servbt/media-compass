@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
+import { createMediaCompassApi } from './lib/api'
 import { getEligibleItems, pickMedia } from './lib/picker'
 import { loadItems, parseImportedItems, saveItems, serializeItems } from './lib/storage'
 import type { MediaCategory, MediaItem, MediaStatus } from './lib/types'
 
 const categories: MediaCategory[] = ['movie', 'tv', 'book', 'game', 'other']
 const activeStatuses: MediaStatus[] = ['curious', 'shortlist', 'in_progress', 'done']
+const apiClient = createMediaCompassApi(import.meta.env.VITE_API_BASE_URL, import.meta.env.VITE_API_TOKEN)
 
 function parseTags(input: string) {
   return input
@@ -57,11 +59,30 @@ function App() {
   const [mood, setMood] = useState('')
   const [pick, setPick] = useState<MediaItem | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
+  const [storageMode, setStorageMode] = useState<'api' | 'local'>(() => (apiClient ? 'api' : 'local'))
   const importInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    saveItems(items)
-  }, [items])
+    let cancelled = false
+    if (!apiClient || storageMode !== 'api') return
+
+    apiClient.listItems()
+      .then((remoteItems) => {
+        if (!cancelled) setItems(remoteItems)
+      })
+      .catch((error) => {
+        console.warn('API load failed; switching to local media queue.', error)
+        setStorageMode('local')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [storageMode])
+
+  useEffect(() => {
+    if (storageMode === 'local') saveItems(items)
+  }, [items, storageMode])
 
   const reviewItems = useMemo(
     () => items.filter((item) => item.status === 'inbox' || item.needsReview),
@@ -91,8 +112,30 @@ function App() {
 
     if (!title) return
 
-    setItems((current) => [makeManualItem(title, newCategory, newMood, reason), ...current])
+    const localItem = makeManualItem(title, newCategory, newMood, reason)
+    setItems((current) => [localItem, ...current])
     event.currentTarget.reset()
+
+    if (apiClient && storageMode === 'api') {
+      apiClient.createItem({
+        canonicalTitle: title,
+        category: newCategory,
+        moods: newMood.length ? newMood : ['unsorted'],
+        themes: [],
+        reason: localItem.reason,
+        status: 'curious',
+        priority: 3,
+        needsReview: false,
+        sourceArtifacts: localItem.sourceArtifacts,
+      })
+        .then((created) => {
+          setItems((current) => current.map((item) => (item.id === localItem.id ? created : item)))
+        })
+        .catch((error) => {
+          console.warn('API create failed; switching to local persistence for optimistic item.', error)
+          setStorageMode('local')
+        })
+    }
   }
 
   function updateStatus(id: string, status: MediaStatus) {
@@ -119,6 +162,17 @@ function App() {
           }
         : current,
     )
+    if (apiClient && storageMode === 'api') {
+      apiClient.updateItem(id, { status })
+        .then((updated) => {
+          setItems((current) => current.map((item) => (item.id === id ? updated : item)))
+          setPick((current) => (current?.id === id ? updated : current))
+        })
+        .catch((error) => {
+          console.warn('API status update failed; switching to local persistence.', error)
+          setStorageMode('local')
+        })
+    }
   }
 
   function resolveReviewItem(id: string, status: MediaStatus) {
@@ -135,6 +189,16 @@ function App() {
           : item,
       ),
     )
+    if (apiClient && storageMode === 'api') {
+      apiClient.updateItem(id, { status, needsReview: false })
+        .then((updated) => {
+          setItems((current) => current.map((item) => (item.id === id ? updated : item)))
+        })
+        .catch((error) => {
+          console.warn('API review resolution failed; switching to local persistence.', error)
+          setStorageMode('local')
+        })
+    }
   }
 
   function rejectReviewItem(id: string) {
