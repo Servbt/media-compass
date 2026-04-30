@@ -8,7 +8,9 @@ import type { MediaCategory, MediaItem, MediaStatus } from './lib/types'
 
 const categories: MediaCategory[] = ['movie', 'tv', 'book', 'game', 'other']
 const activeStatuses: MediaStatus[] = ['curious', 'shortlist', 'in_progress', 'done']
-const apiClient = createMediaCompassApi(import.meta.env.VITE_API_BASE_URL, import.meta.env.VITE_API_TOKEN)
+const apiClient = import.meta.env.MODE === 'test'
+  ? null
+  : createMediaCompassApi(import.meta.env.VITE_API_BASE_URL, import.meta.env.VITE_API_TOKEN)
 
 function parseTags(input: string) {
   return input
@@ -113,7 +115,11 @@ function App() {
     if (!title) return
 
     const localItem = makeManualItem(title, newCategory, newMood, reason)
-    setItems((current) => [localItem, ...current])
+    setItems((current) => {
+      const nextItems = [localItem, ...current]
+      if (storageMode === 'local') saveItems(nextItems)
+      return nextItems
+    })
     event.currentTarget.reset()
 
     if (apiClient && storageMode === 'api') {

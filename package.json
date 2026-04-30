@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "tsx server/src/index.ts",
+    "dev:tunnel": "tsx server/src/scripts/localDev.ts",
     "build": "tsc -b && vite build",
     "build:server": "tsc -p server/tsconfig.json",
     "start:server": "tsx server/src/index.ts",

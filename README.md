@@ -119,7 +119,20 @@ npm run dev:server
 curl http://localhost:3001/healthz
 ```
 
-Web app backed by the API:
+Preferred full local stack with Cloudflare quick tunnels and Telegram webhook:
+
+```bash
+cp .env.example .env
+# Fill in TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET.
+# Optional but recommended: set TELEGRAM_ALLOWED_USER_ID.
+npm run dev:tunnel
+```
+
+`npm run dev:tunnel` starts the API, waits for `/healthz`, starts an API Cloudflare quick tunnel, writes `APP_BASE_URL` and `VITE_API_BASE_URL` to `.env`, starts the frontend with that API URL, starts a frontend quick tunnel, writes `FRONTEND_ORIGIN` to `.env`, restarts the API so CORS uses the frontend tunnel, then calls Telegram `setWebhook` for `${APP_BASE_URL}/api/webhooks/telegram`. Leave it running while developing; press Ctrl+C to stop the API, frontend, and both tunnels.
+
+Cloudflare quick tunnel URLs are intentionally temporary and can change every run. The app data still persists locally in `.data/media-compass.json`, but `.env` tunnel URLs are refreshed by this command.
+
+Web app backed by the API without public tunnels:
 
 ```bash
 # terminal 1
