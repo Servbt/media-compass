@@ -6,7 +6,7 @@ config()
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   MEDIA_COMPASS_DATA_FILE: z.string().default('.data/media-compass.json'),
-  HOST: z.string().default('127.0.0.1'),
+  HOST: z.string().default('0.0.0.0'),
   FRONTEND_ORIGIN: z.string().optional(),
   API_TOKEN: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().optional(),

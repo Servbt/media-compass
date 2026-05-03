@@ -11,6 +11,7 @@ const app = buildApp({
   telegramWebhookSecret: env.TELEGRAM_WEBHOOK_SECRET,
   telegramAllowedUserId: env.TELEGRAM_ALLOWED_USER_ID,
   telegramClient: env.TELEGRAM_BOT_TOKEN ? new TelegramBotApiClient(env.TELEGRAM_BOT_TOKEN) : undefined,
+  serveStaticRoot: 'dist',
 })
 
 try {

@@ -1,4 +1,7 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 import cors from '@fastify/cors'
+import fastifyStatic from '@fastify/static'
 import Fastify from 'fastify'
 import type { MediaCompassStore } from './db/types'
 import { registerItemRoutes } from './routes/items'
@@ -13,6 +16,7 @@ export type BuildAppOptions = {
   telegramWebhookSecret?: string
   telegramAllowedUserId?: string
   telegramClient?: TelegramClient
+  serveStaticRoot?: string
 }
 
 export function buildApp({
@@ -23,8 +27,9 @@ export function buildApp({
   telegramWebhookSecret,
   telegramAllowedUserId,
   telegramClient,
+  serveStaticRoot,
 }: BuildAppOptions) {
-  const app = Fastify({ logger: false })
+  const app = Fastify({ logger: true })
 
   app.register(cors, { origin: corsOrigin })
 
@@ -48,6 +53,24 @@ export function buildApp({
     allowedUserId: telegramAllowedUserId,
     telegramClient,
   }))
+
+  if (serveStaticRoot) {
+    const resolved = path.resolve(serveStaticRoot)
+    if (existsSync(resolved)) {
+      app.register(fastifyStatic, {
+        root: resolved,
+        prefix: '/',
+        wildcard: false,
+      })
+      // SPA fallback: any unmatched non-API route → index.html
+      app.setNotFoundHandler(async (request, reply) => {
+        if (request.url.startsWith('/api/')) {
+          return reply.status(404).send({ error: 'Not found' })
+        }
+        return reply.sendFile('index.html')
+      })
+    }
+  }
 
   return app
 }

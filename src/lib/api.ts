@@ -38,8 +38,8 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function createMediaCompassApi(baseUrl?: string, apiToken?: string): MediaCompassApi | null {
-  const normalizedBaseUrl = baseUrl?.trim().replace(/\/$/, '')
-  if (!normalizedBaseUrl) return null
+  if (baseUrl === undefined) return null
+  const normalizedBaseUrl = baseUrl.trim().replace(/\/$/, '')
   const authHeaders = apiToken ? { Authorization: `Bearer ${apiToken}` } : undefined
 
   return {

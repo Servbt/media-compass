@@ -6,8 +6,14 @@ describe('createMediaCompassApi', () => {
     vi.restoreAllMocks()
   })
 
-  it('returns null when no API base URL is configured', () => {
-    expect(createMediaCompassApi('')).toBeNull()
+  it('returns null when called with undefined (no base URL configured)', () => {
+    expect(createMediaCompassApi()).toBeNull()
+    expect(createMediaCompassApi(undefined)).toBeNull()
+  })
+
+  it('returns a client when base URL is empty string (same-origin)', () => {
+    const api = createMediaCompassApi('')
+    expect(api).not.toBeNull()
   })
 
   it('lists and creates items through the configured API', async () => {

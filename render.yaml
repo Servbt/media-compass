@@ -1,0 +1,30 @@
+# Media Compass — Render Blueprint
+# Deploy: push to main, or create from render.yaml in Render dashboard
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: media-compass
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_BASE_URL
+        value: ""
+      - key: APP_BASE_URL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      - key: TELEGRAM_ALLOWED_USER_ID
+        sync: false
+      # Optional: set if you want API auth for writes
+      - key: API_TOKEN
+        sync: false
+      # Set when migrating to PostgreSQL
+      - key: DATABASE_URL
+        sync: false
